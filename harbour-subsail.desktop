@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+X-Nemo-Application-Type=silica-qt5
+Icon=harbour-subsail
+Exec=harbour-subsail
+Name=SubSail
+
+[X-Sailjail]
+# Replace with your organization as a reverse domain name
+OrganizationName=org.cryptofrays
+# ApplicationName does not have to be identical to Name
+ApplicationName=SubSail
+# Add the required permissions here
+Permissions=UserDirs;MediaIndexing;RemovableMedia
+
