@@ -522,14 +522,19 @@ Page {
             interval: timeInterval
             repeat: true
             running: subSailMain.playing
+            property string prevSub
 
             onTriggered: {
                 var now = new Date()
                 var expired = now - lastUpdate
                 lastUpdate = now
 
-                subtitlesModel.clear()
-                subtitlesModel.append({ modelText: SubtitleEngine.getSubtitle(expired)})
+                var nextSub = SubtitleEngine.getSubtitle(expired)
+                if (nextSub != prevSub) {
+                    prevSub = nextSub
+                    subtitlesModel.clear()
+                    subtitlesModel.append({ modelText: nextSub})
+                }
                 time += expired
 
                 if (time >= totalTime) {

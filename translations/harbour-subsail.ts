@@ -54,7 +54,7 @@ Automatic resume of playback after returning to main view can be changed in sett
 <context>
     <name>CoverPage</name>
     <message>
-        <location filename="../qml/cover/CoverPage.qml" line="25"/>
+        <location filename="../qml/cover/CoverPage.qml" line="24"/>
         <source>SubSail</source>
         <translation type="unfinished"></translation>
     </message>
@@ -161,91 +161,91 @@ Automatic resume of playback after returning to main view can be changed in sett
 <context>
     <name>SubtitleView</name>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="319"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="318"/>
         <source>Failed to load file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="319"/>
-        <location filename="../qml/pages/SubtitleView.qml" line="323"/>
-        <location filename="../qml/pages/SubtitleView.qml" line="327"/>
-        <location filename="../qml/pages/SubtitleView.qml" line="331"/>
-        <location filename="../qml/pages/SubtitleView.qml" line="346"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="318"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="322"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="326"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="330"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="345"/>
         <source>Subtitle load failure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="323"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="322"/>
         <source>Subtitle type not supported</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="327"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="326"/>
         <source>File access denied</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="331"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="330"/>
         <source>File not found</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="346"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="345"/>
         <source>Unknown error</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="391"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="390"/>
         <source>FPS change timer overflow</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="391"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="390"/>
         <source>Time reset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="428"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="427"/>
         <source>Failed to change fallback codec to</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="428"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="427"/>
         <source>Codec empty</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="431"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="430"/>
         <source>Failed to change fallback codec</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="431"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="430"/>
         <source>Invalid codec</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="474"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="473"/>
         <source>Failed to load subtitle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="489"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="488"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="494"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="493"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="499"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="498"/>
         <source>Select Subtitle</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/pages/SubtitleView.qml" line="503"/>
+        <location filename="../qml/pages/SubtitleView.qml" line="502"/>
         <source>Select FPS</source>
         <translation type="unfinished"></translation>
     </message>
