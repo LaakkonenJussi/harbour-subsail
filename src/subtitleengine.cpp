@@ -227,7 +227,7 @@ QString SubtitleEngine::getSubtitle(int time)
             current->start_time += time_offset;
             current->end_time += time_offset;
 
-            if (prev_end_time > 0 && current->start_time > prev_end_time) {
+            if (prev_end_time >= 0 && current->start_time >= prev_end_time) {
                 delay = current->start_time - prev_end_time;
                 state = SUB_STATE_DELAY;
             }
