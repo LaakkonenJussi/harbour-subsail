@@ -97,7 +97,7 @@ Subtitle *SubParserQt::parseSubtitle()
     }
 
     QString line = iInStream->readLine().trimmed();
-    QRegularExpression rx(R"(\{(\d+)\}\{(\d+)\}(.*))");
+    QRegularExpression rx(R"(\{(\d+(?:\.\d+)?)\}\{(\d+(?:\.\d+)?)\}(.*))");
     QRegularExpressionMatch match = rx.match(line);
 
     if (!match.hasMatch()) {
@@ -105,11 +105,17 @@ Subtitle *SubParserQt::parseSubtitle()
         return nullptr;
     }
 
-    int startFrame = match.captured(1).toInt();
-    int endFrame = match.captured(2).toInt();
+    // Some .sub files can have non-standard frames as floats caused by conversion
+    int startFrame = static_cast<int>(match.captured(1).toFloat());
+    int endFrame = static_cast<int>(match.captured(2).toFloat());
     text = match.captured(3).trimmed();
 
     text = cleanupText(text);
+
+    if (!startFrame || !endFrame) {
+        qDebug() << "Failed to parse frames on line:" << line;
+        return nullptr;
+    }
 
     // FPS info
     if (startFrame == 1 && endFrame == 1) {
