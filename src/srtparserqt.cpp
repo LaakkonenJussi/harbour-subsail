@@ -74,10 +74,13 @@ Subtitle* SrtParserQt::parseSubtitle()
             }
 
             if (!text.isEmpty())
-                text.append(QString("\n").toUtf8());
+                text.append(QStringLiteral("<br>").toUtf8());
 
             // Some srt files can have tags without space, add them
-            text.append(line.replace(controlCode, " \\1").toUtf8());
+            line = line.replace(controlCode, " \\1").toUtf8();
+
+            // And add appropriate newline markers
+            text.append(line.replace("\n", QStringLiteral("<br>")));
 
             break;
         case SRT_READ_STOP:
