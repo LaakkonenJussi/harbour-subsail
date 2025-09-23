@@ -132,12 +132,12 @@ int Parser::openSubtitle(const QString &filePath)
     return 0;
 }
 
-Subtitle *Parser::loadSubtitle()
+Subtitle *Parser::loadSubtitle(enum SubParseError *err)
 {
     Subtitle *newsub = nullptr;
 
     if (iSubfile->isOpen() && iSubfile->isReadable())
-        newsub = parseSubtitle();
+        newsub = parseSubtitle(err);
 
     return newsub;
 }

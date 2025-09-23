@@ -26,7 +26,7 @@ SrtParserQt::SrtParserQt()
 {
 }
 
-Subtitle* SrtParserQt::parseSubtitle()
+Subtitle* SrtParserQt::parseSubtitle(enum SubParseError *err)
 {
     QString text;
     QStringList parts;
@@ -50,6 +50,7 @@ Subtitle* SrtParserQt::parseSubtitle()
             index = line.toInt(&result);
             if (!result) {
                 qDebug() << "invalid index" << line;
+                *err = SUB_PARSE_ERROR_INVALID_INDEX;
                 return nullptr;
             }
 
@@ -59,6 +60,7 @@ Subtitle* SrtParserQt::parseSubtitle()
             parts = line.split(" --> ");
             if (parts.size() != 2) {
                 qDebug() << "invalid timestamp" << line;
+                *err = SUB_PARSE_ERROR_INVALID_TIMESTAMP;
                 return nullptr;
             }
 
@@ -90,6 +92,7 @@ Subtitle* SrtParserQt::parseSubtitle()
 
     if (index < 0) {
         qDebug() << "cannot parse subtitle line";
+        *err = SUB_PARSE_ERROR_INVALID_FILE;
         return nullptr;
     }
 

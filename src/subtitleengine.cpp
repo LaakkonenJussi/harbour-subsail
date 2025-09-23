@@ -42,9 +42,26 @@ void SubtitleEngine::setupSubtitles()
     delay = current->start_time;
 }
 
+static QString parseErrorToStr(enum SubParseError err)
+{
+    switch (err) {
+    case SUB_PARSE_ERROR_NONE:
+        return QString("No error");
+    case SUB_PARSE_ERROR_INVALID_INDEX:
+        return QString("Invalid indexes");
+    case SUB_PARSE_ERROR_INVALID_TIMESTAMP:
+        return QString("Invalid timestamps");
+    case SUB_PARSE_ERROR_INVALID_FILE:
+        return QString("Invalid file");
+    }
+
+    return QString("");
+}
+
 SubtitleEngine::SubtitleLoadStatus SubtitleEngine::loadSubtitle(QString file)
 {
     Subtitle *newsub;
+    enum SubParseError parseErr = SUB_PARSE_ERROR_NONE;
 
     qDebug() << "load " << file << "";
 
@@ -76,7 +93,8 @@ SubtitleEngine::SubtitleLoadStatus SubtitleEngine::loadSubtitle(QString file)
         break;
     }
 
-    while ((newsub = iParser->loadSubtitle())) {
+    while ((newsub = iParser->loadSubtitle(&parseErr)) &&
+            (parseErr == SUB_PARSE_ERROR_NONE)) {
         if (current) {
             current->next = newsub;
             current = newsub;
@@ -86,6 +104,16 @@ SubtitleEngine::SubtitleLoadStatus SubtitleEngine::loadSubtitle(QString file)
     }
 
     iParser->closeSubtitle();
+
+    switch (parseErr) {
+    case SUB_PARSE_ERROR_NONE:
+        break;
+    case SUB_PARSE_ERROR_INVALID_INDEX:
+    case SUB_PARSE_ERROR_INVALID_TIMESTAMP:
+    case SUB_PARSE_ERROR_INVALID_FILE:
+        qWarning() << "cannot parse subtitle file" << parseErrorToStr(parseErr);
+        return SUBTITLE_LOAD_STATUS_PARSE_FAILURE;
+    }
 
     setupSubtitles();
 
