@@ -78,7 +78,8 @@ QString SubParserQt::cleanupText(QString &text)
     }
 
     // And finally appropriate newline markers
-    text = text.trimmed().replace('|', '\n');
+    //text = text.trimmed().replace('|', '\n');
+    text = text.trimmed().replace("|", QStringLiteral("<br>"));
 
     return text;
 }
