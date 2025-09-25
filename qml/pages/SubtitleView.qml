@@ -314,8 +314,12 @@ Page {
     {
         switch (loadStatus) {
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_FAILURE:
-        case 5:
+        case 6:
             errorNotify(qsTr("Failed to load file"), qsTr("Subtitle load failure"))
+            break
+        case SubtitleEngine.SUBTITLE_LOAD_STATUS_PARSE_FAILURE:
+        case 5:
+            errorNotify(qsTr("Failed to parse file"), qsTr("Subtitle load failure"))
             break
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_NOT_SUPPORTED:
         case 4:
