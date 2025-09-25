@@ -30,7 +30,7 @@ class Parser
 {
 public:
     int openSubtitle(const QString &filePath);
-    Subtitle *loadSubtitle();
+    Subtitle *loadSubtitle(enum SubParseError *err);
     void closeSubtitle();
     QString getSubtitleText(Subtitle *subtitle);
     Subtitle *newSubtitle(int index,
@@ -51,7 +51,7 @@ public:
     void setFps(double fps);
     void setFallbackCodec(const QString &fallbackCodec);
 
-    virtual Subtitle *parseSubtitle() = 0;
+    virtual Subtitle *parseSubtitle(enum SubParseError *err) = 0;
     virtual void updateFPS(Subtitle *subtitle) = 0;
     virtual bool needFPSUpdate() = 0;
 

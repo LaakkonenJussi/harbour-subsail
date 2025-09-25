@@ -84,7 +84,7 @@ QString SubParserQt::cleanupText(QString &text)
     return text;
 }
 
-Subtitle *SubParserQt::parseSubtitle()
+Subtitle *SubParserQt::parseSubtitle(enum SubParseError *err)
 {
     QString text;
     QStringList parts;
@@ -102,6 +102,7 @@ Subtitle *SubParserQt::parseSubtitle()
 
     if (!match.hasMatch()) {
         qDebug() << "failed to process line" << line;
+        *err = SUB_PARSE_ERROR_INVALID_FILE;
         return nullptr;
     }
 
@@ -114,6 +115,7 @@ Subtitle *SubParserQt::parseSubtitle()
 
     if (!startFrame || !endFrame) {
         qDebug() << "Failed to parse frames on line:" << line;
+        *err = SUB_PARSE_ERROR_INVALID_TIMESTAMP;
         return nullptr;
     }
 

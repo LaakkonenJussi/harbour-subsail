@@ -314,8 +314,12 @@ Page {
     {
         switch (loadStatus) {
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_FAILURE:
-        case 5:
+        case 6:
             errorNotify(qsTr("Failed to load file"), qsTr("Subtitle load failure"))
+            break
+        case SubtitleEngine.SUBTITLE_LOAD_STATUS_PARSE_FAILURE:
+        case 5:
+            errorNotify(qsTr("Failed to parse file"), qsTr("Subtitle load failure"))
             break
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_NOT_SUPPORTED:
         case 4:
@@ -522,14 +526,19 @@ Page {
             interval: timeInterval
             repeat: true
             running: subSailMain.playing
+            property string prevSub
 
             onTriggered: {
                 var now = new Date()
                 var expired = now - lastUpdate
                 lastUpdate = now
 
-                subtitlesModel.clear()
-                subtitlesModel.append({ modelText: SubtitleEngine.getSubtitle(expired)})
+                var nextSub = SubtitleEngine.getSubtitle(expired)
+                if (nextSub != prevSub) {
+                    prevSub = nextSub
+                    subtitlesModel.clear()
+                    subtitlesModel.append({ modelText: nextSub})
+                }
                 time += expired
 
                 if (time >= totalTime) {

@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     int err;
 
     SubtitleEngine *subEngine = SubtitleEngine::initEngine();
-    engine->rootContext()->setContextProperty("SubtitleEngine", subEngine);;
+    engine->rootContext()->setContextProperty("SubtitleEngine", subEngine);
     engine->setSource(SailfishApp::pathTo("qml/MainPage.qml"));
     engine->show();
 

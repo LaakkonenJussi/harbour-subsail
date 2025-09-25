@@ -37,7 +37,7 @@ public:
 
     // Parser interface
 public:
-    Subtitle *parseSubtitle();
+    Subtitle *parseSubtitle(enum SubParseError *err);
     void updateFPS(Subtitle *subtitle);
     bool needFPSUpdate() { return false; };
 

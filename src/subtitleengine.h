@@ -37,9 +37,10 @@ public:
         SUBTITLE_LOAD_STATUS_FILE_NOT_FOUND,
         SUBTITLE_LOAD_STATUS_ACCESS_DENIED,
         SUBTITLE_LOAD_STATUS_NOT_SUPPORTED,
+        SUBTITLE_LOAD_STATUS_PARSE_FAILURE,
         SUBTITLE_LOAD_STATUS_FAILURE
     };
-    Q_ENUMS(SubtitleLoadStatus);
+    Q_ENUM(SubtitleLoadStatus);
 
     Q_INVOKABLE SubtitleEngine::SubtitleLoadStatus loadSubtitle(QString str);
     Q_INVOKABLE void updateFps(double fps);
