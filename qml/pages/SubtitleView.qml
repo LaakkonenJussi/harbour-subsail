@@ -245,12 +245,14 @@ Page {
                     subSailMain.playing = playstate
             })
             dialog.onRejected.connect(function() {
-                clearSubtitles()
                 if (fps === 0) {
                     loaded = false
                     subtitleFilePath = ""
-                    totalTime = 0
+                    showFPSSelector = false
+                    SubtitleEngine.unloadSubtitle();
                 }
+
+                clearSubtitles()
             })
         })
     }
@@ -260,6 +262,7 @@ Page {
         currentPlaying = subSailMain.playing
         subSailMain.playing = false
         subtitleFilePath = ""
+        fps = 0.0
 
         var pickerObj = pageStack.animatorPush("Sailfish.Pickers.FilePickerPage", {
             nameFilters: ["*.srt", "*.sub"],
