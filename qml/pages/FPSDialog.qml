@@ -61,7 +61,7 @@ Dialog {
     }
 
     onDone: {
-        if (result == DialogResult.Accepted && optionBox.currentIndex > 0)
+        if (result == DialogResult.Accepted && optionBox.currentIndex >= 0)
             fps = parseFloat(optionBox.currentItem.text)
         else
             fps = 0
