@@ -25,21 +25,25 @@
 
 void SubtitleEngine::setupSubtitles()
 {
-    if (!first)
+    Subtitle *first = nullptr;
+
+    if (subtitles.empty())
         return;
 
-    qDebug() << current->index << "subtitle lines processed";
+    qDebug() << subtitles.size() << "subtitle lines processed";
 
-    total_time = current->end_time;
+    first = subtitles.first();
+
+    total_time = subtitles.last()->end_time;
     qDebug() << "total duration" << total_time << "ms";
     qDebug() << "start" << first->index << "time" << first->start_time;
 
-    current = first;
+    current_index = 0;
     state = SUB_STATE_DELAY;
     prev_end_time = 0;
-    current->start_time += time_offset;
-    current->end_time += time_offset;
-    delay = current->start_time;
+    first->start_time += time_offset;
+    first->end_time += time_offset;
+    delay = first->start_time;
 }
 
 static QString parseErrorToStr(enum SubParseError err)
@@ -94,14 +98,8 @@ SubtitleEngine::SubtitleLoadStatus SubtitleEngine::loadSubtitle(QString file)
     }
 
     while ((newsub = iParser->loadSubtitle(&parseErr)) &&
-            (parseErr == SUB_PARSE_ERROR_NONE)) {
-        if (current) {
-            current->next = newsub;
-            current = newsub;
-        } else {
-            first = current = newsub;
-        }
-    }
+            (parseErr == SUB_PARSE_ERROR_NONE))
+        subtitles.append(newsub);
 
     iParser->closeSubtitle();
 
@@ -131,7 +129,8 @@ void SubtitleEngine::unloadSubtitle()
 
 void SubtitleEngine::updateFps(double fps)
 {
-    Subtitle *subtitle = nullptr;
+    QListIterator<Subtitle*> iter(subtitles);
+    Subtitle *subtitle;
 
     if (!iParser)
         return;
@@ -139,18 +138,12 @@ void SubtitleEngine::updateFps(double fps)
     qDebug() << "updating FPS to" << fps;
     iParser->setFps(fps);
 
-    subtitle = first;
-    while (subtitle) {
+    foreach (subtitle, subtitles)
         iParser->updateFPS(subtitle);
 
-        // Last, update time
-        if (!subtitle->next) {
-            total_time = subtitle->end_time;
-            qDebug() << "total time updated to" << total_time;
-        }
-
-        subtitle = subtitle->next;
-    }
+    // Update time from the last one
+    total_time = subtitles.last()->end_time;
+    qDebug() << "total time updated to" << total_time;
 }
 
 void SubtitleEngine::increaseTime(int time)
@@ -181,48 +174,50 @@ void SubtitleEngine::setTime(int time)
     int diff;
 
     current_time = time;
-    tmp = first;
-    while (tmp) {
+
+    foreach (tmp, subtitles) {
+
         // delay
         if (tmp->start_time >= time && tmp->end_time <= time) {
-            current = tmp;
             state = SUB_STATE_DELAY;
             delay = tmp->start_time - time;
-            return;
+            break;
         }
 
         // duration
         if (tmp->start_time <= time && tmp->end_time >= time) {
-            current = tmp;
             state = SUB_STATE_DURATION;
             duration = tmp->end_time - time;
-            return;
+            break;
         }
 
         if (tmp->start_time <= time && tmp->end_time > time &&
                 (tmp->next && tmp->next->start_time > time)) {
-            current = tmp;
             state = SUB_STATE_DURATION;
             diff = time - tmp->start_time;
             duration = tmp->end_time - tmp->start_time + diff;
-            return;
+            break;
         }
 
         if (tmp->start_time >= time) {
-            current = tmp;
             state = SUB_STATE_DELAY;
             delay = tmp->start_time - time;
-            return;
+            break;
         }
-
-        tmp = tmp->next;
     }
+
+    current_index = tmp->index;
 
     return;
 }
 
 QString SubtitleEngine::getSubtitle(int time)
 {
+    Subtitle *current = getSubtitleNow();
+
+    if (!iParser)
+        return QString("no parser");
+
     if (!current)
         return QString("<subtitles end>");
 
@@ -237,10 +232,6 @@ QString SubtitleEngine::getSubtitle(int time)
             state = SUB_STATE_DURATION;
             duration = current->end_time - current->start_time;
             delay = 0;
-
-            if (!iParser)
-                return QString("no parser");
-
             return iParser->getSubtitleText(current);
         } else {
             return QString("");
@@ -252,12 +243,14 @@ QString SubtitleEngine::getSubtitle(int time)
             duration = 0;
             prev_end_time = current->end_time;
 
-            if (!current->next) {
+            if (current_index >= subtitles.size()) {
                 state = SUB_STATE_END;
                 return QString("<subtitles end>");
             }
 
-            current = current->next;
+            current_index++;
+            current = getSubtitleNow();
+
             current->start_time += time_offset;
             current->end_time += time_offset;
 
@@ -268,9 +261,6 @@ QString SubtitleEngine::getSubtitle(int time)
 
             return QString("");
         }
-
-        if (!iParser)
-            return QString("no parser");
 
         return iParser->getSubtitleText(current);
     case SUB_STATE_END:
@@ -323,26 +313,26 @@ QString SubtitleEngine::getFallbackCodec()
 
 void SubtitleEngine::freeSubtitles()
 {
-    if (!first)
+    Subtitle *subtitle;
+
+    if (subtitles.empty())
         return;
 
     qDebug() << "free subtitle list";
 
-    current = first;
-    while (current) {
-        Subtitle *tmp = current;
-        current = current->next;
-
-        if (iParser)
-            iParser->freeSubtitle(tmp);
+    if (iParser) {
+        foreach (subtitle, subtitles)
+            iParser->freeSubtitle(subtitle);
     }
+
+    subtitles.clear();
 
     resetEngine();
 }
 
 void SubtitleEngine::resetEngine()
 {
-    current = first = nullptr;
+    current_index = -1;
     iParser = nullptr;
 
     current_time = 0;
@@ -355,6 +345,14 @@ void SubtitleEngine::resetEngine()
 
     if (fallback_codec.isEmpty())
         fallback_codec = QString("Windows-1252");
+}
+
+Subtitle *SubtitleEngine::getSubtitleNow()
+{
+    if (current_index > subtitles.size() || current_index < 0)
+        return nullptr;
+
+    return subtitles.at(current_index);
 }
 
 SubtitleEngine* SubtitleEngine::iEngine = nullptr;

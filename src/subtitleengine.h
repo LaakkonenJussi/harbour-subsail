@@ -60,11 +60,13 @@ private:
     void freeSubtitles(void);
     void setupSubtitles();
     void resetEngine();
+    Subtitle *getSubtitleNow();
 
     static SubtitleEngine* iEngine;
 
     Parser* iParser;
 
+    QList<Subtitle*> subtitles;
     QString path;
     QString fallback_codec;
     unsigned int current_time;
@@ -74,8 +76,7 @@ private:
     int delay;
     int duration;
     SubState state;
-    Subtitle *current;
-    Subtitle *first;
+    int current_index;
 };
 
 #endif // SUBTITLEENGINE_H
