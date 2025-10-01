@@ -43,6 +43,7 @@ public:
     Q_ENUM(SubtitleLoadStatus);
 
     Q_INVOKABLE SubtitleEngine::SubtitleLoadStatus loadSubtitle(QString str);
+    Q_INVOKABLE void unloadSubtitle();
     Q_INVOKABLE void updateFps(double fps);
     Q_INVOKABLE void increaseTime(int time);
     Q_INVOKABLE void setTime(int time);

@@ -123,6 +123,12 @@ SubtitleEngine::SubtitleLoadStatus SubtitleEngine::loadSubtitle(QString file)
     return SUBTITLE_LOAD_STATUS_OK;
 }
 
+void SubtitleEngine::unloadSubtitle()
+{
+    qDebug() << "unload subtitle and reset";
+    freeSubtitles();
+}
+
 void SubtitleEngine::updateFps(double fps)
 {
     Subtitle *subtitle = nullptr;

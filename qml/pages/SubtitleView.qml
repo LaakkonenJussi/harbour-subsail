@@ -245,6 +245,13 @@ Page {
                     subSailMain.playing = playstate
             })
             dialog.onRejected.connect(function() {
+                if (fps === 0) {
+                    loaded = false
+                    subtitleFilePath = ""
+                    showFPSSelector = false
+                    SubtitleEngine.unloadSubtitle();
+                }
+
                 clearSubtitles()
             })
         })
@@ -255,6 +262,7 @@ Page {
         currentPlaying = subSailMain.playing
         subSailMain.playing = false
         subtitleFilePath = ""
+        fps = 0.0
 
         var pickerObj = pageStack.animatorPush("Sailfish.Pickers.FilePickerPage", {
             nameFilters: ["*.srt", "*.sub"],
@@ -310,28 +318,33 @@ Page {
         clearSubtitles()
     }
 
+    function errorNotifyLoadFailure(message)
+    {
+        errorNotify(message, qsTr("Subtitle load failure"))
+    }
+
     function checkSubtitleLoadResult()
     {
         switch (loadStatus) {
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_FAILURE:
         case 6:
-            errorNotify(qsTr("Failed to load file"), qsTr("Subtitle load failure"))
+            errorNotifyLoadFailure(qsTr("Failed to load file"))
             break
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_PARSE_FAILURE:
         case 5:
-            errorNotify(qsTr("Failed to parse file"), qsTr("Subtitle load failure"))
+            errorNotifyLoadFailure(qsTr("Failed to parse file"))
             break
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_NOT_SUPPORTED:
         case 4:
-            errorNotify(qsTr("Subtitle type not supported"), qsTr("Subtitle load failure"))
+            errorNotifyLoadFailure(qsTr("Subtitle type not supported"))
             break
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_ACCESS_DENIED:
         case 3:
-            errorNotify(qsTr("File access denied"), qsTr("Subtitle load failure"))
+            errorNotifyLoadFailure(qsTr("File access denied"))
             break
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_FILE_NOT_FOUND:
         case 2:
-            errorNotify(qsTr("File not found"), qsTr("Subtitle load failure"))
+            errorNotifyLoadFailure(qsTr("File not found"))
             break
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_OK_NEED_FPS:
         case 1:
@@ -346,7 +359,7 @@ Page {
             break
         default:
             console.log("subtitle load status out of bounds:", loadStatus)
-            errorNotify(qsTr("Unknown error"), qsTr("Subtitle load failure"))
+            errorNotifyLoadFailure(qsTr("Unknown error"))
             break
         }
     }
