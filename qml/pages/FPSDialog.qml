@@ -2,7 +2,8 @@ import QtQuick 2.2
 import Sailfish.Silica 1.0
 
 Dialog {
-    property double fps
+    property double fps: 0
+    property bool selected: false
     allowedOrientations: Orientation.All
 
     function itemTextToIndex(text) {
@@ -26,6 +27,8 @@ Dialog {
         return 0
     }
 
+    canAccept: selected === true
+
     Column {
         width: parent.width
 
@@ -37,6 +40,7 @@ Dialog {
             label: qsTr("Select subtitle FPS")
             value: fps > 0 ? fps.toString() : "23.976"
             currentIndex: itemTextToIndex(fps.toString())
+            onEntered: selected = true
 
             menu: ContextMenu {
                 id: menu
@@ -57,7 +61,7 @@ Dialog {
     }
 
     onDone: {
-        if (result == DialogResult.Accepted)
+        if (result == DialogResult.Accepted && optionBox.currentIndex > 0)
             fps = parseFloat(optionBox.currentItem.text)
         else
             fps = 0
