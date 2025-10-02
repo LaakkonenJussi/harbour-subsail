@@ -71,6 +71,7 @@ protected:
     QTextStream* iInStream;
     double iFps;
     QString iFallbackCodec;
+    QString iTimeStampPattern;
 };
 
 #endif // PARSER_H

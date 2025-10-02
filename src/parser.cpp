@@ -81,7 +81,7 @@ bool Parser::checkFileMIME(const QString &filepath)
 
 QTime Parser::timeStrToQTime(const QString &str)
 {
-    return QTime::fromString(str, "hh:mm:ss,zzz");
+    return QTime::fromString(str, iTimeStampPattern);
 }
 
 int Parser::timestampToMs(const char *timestamp)
