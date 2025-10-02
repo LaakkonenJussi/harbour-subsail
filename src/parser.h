@@ -54,6 +54,7 @@ public:
     virtual Subtitle *parseSubtitle(enum SubParseError *err) = 0;
     virtual void updateFPS(Subtitle *subtitle) = 0;
     virtual bool needFPSUpdate() = 0;
+    virtual void initializeParser() = 0;
 
     Parser();
     ~Parser();
