@@ -20,6 +20,8 @@
 #include "subtitleengine.h"
 #include "parserenginefactory.h"
 
+#include <math.h>
+
 #include <QFileInfo>
 #include <QTextCodec>
 
@@ -173,14 +175,47 @@ void SubtitleEngine::increaseTime(int time)
     }
 }
 
+int SubtitleEngine::findPosition(int time, int min, int max) {
+    Subtitle *tmp;
+    double halfpoint = (max - min) / 2;
+    int half = min + floor(halfpoint);
+
+    if (min >= max)
+        return half;
+
+    tmp = subtitles.at(half);
+
+    if (tmp->start_time < time && tmp->end_time < time)
+        return findPosition(time, half + 1, max);
+    else if (tmp->start_time < time && tmp->end_time > time)
+        return half;
+    else
+        return findPosition(time, min, half - 1);
+}
+
 void SubtitleEngine::setTime(int time)
 {
-    Subtitle *tmp;
+    Subtitle *tmp = nullptr;
+    int position = 0;
+    int size;
     int diff;
+
+    size = subtitles.size();
+
+    if (time) {
+        position = findPosition(time, 0, size - 1);
+        if (position > 0)
+            /* Just to be sure in case the set time overlaps */
+            --position;
+    }
+
+    qDebug() << "seached position:" << position;
 
     current_time = time;
 
-    foreach (tmp, subtitles) {
+    for (; position < size ; position++) {
+
+        tmp = subtitles.at(position);
 
         // delay
         if (tmp->start_time >= time && tmp->end_time <= time) {
@@ -197,7 +232,7 @@ void SubtitleEngine::setTime(int time)
         }
 
         if (tmp->start_time <= time && tmp->end_time > time &&
-                (tmp->next && tmp->next->start_time > time)) {
+                ((position + 1) < size && subtitles.at(position + 1)->start_time > time)) {
             state = SUB_STATE_DURATION;
             diff = time - tmp->start_time;
             duration = tmp->end_time - tmp->start_time + diff;
@@ -211,18 +246,24 @@ void SubtitleEngine::setTime(int time)
         }
     }
 
-    current_index = tmp->index;
+    if (tmp)
+        current_index = tmp->index - 1; // Subtitles start from 1
+    else
+        qDebug() << "not found, tmp null";
+
+    qDebug() << "position" << current_index;
 
     return;
 }
 
 QString SubtitleEngine::getSubtitle(int time)
 {
-    Subtitle *current = getSubtitleNow();
+    Subtitle *current;
 
     if (!iParser)
         return QString("no parser");
 
+    current = getSubtitleNow();
     if (!current)
         return QString("<subtitles end>");
 
@@ -248,13 +289,17 @@ QString SubtitleEngine::getSubtitle(int time)
             duration = 0;
             prev_end_time = current->end_time;
 
-            if (current_index >= subtitles.size()) {
+            if (current_index + 1 >= subtitles.size()) {
                 state = SUB_STATE_END;
                 return QString("<subtitles end>");
             }
 
             current_index++;
             current = getSubtitleNow();
+            if (!current) {
+                state = SUB_STATE_END;
+                return QString("<subtitles end>");
+            }
 
             current->start_time += time_offset;
             current->end_time += time_offset;
@@ -354,7 +399,7 @@ void SubtitleEngine::resetEngine()
 
 Subtitle *SubtitleEngine::getSubtitleNow()
 {
-    if (current_index > subtitles.size() || current_index < 0)
+    if (current_index < 0 || current_index > subtitles.size() - 1)
         return nullptr;
 
     return subtitles.at(current_index);
