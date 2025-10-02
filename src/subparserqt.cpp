@@ -20,11 +20,15 @@
 #include "subparserqt.h"
 
 #include <QRegularExpression>
+#include <QTime>
 #include <Qt>
 
 SubParserQt::SubParserQt()
 {
     iSubtitleIndex = 0;
+    iTimeStampPattern = QString("hh:mm:ss.z");
+    iType = SUB_TYPE_UNSET;
+    iNeedFPSUpdate = true;
 }
 
 void SubParserQt::updateFPS(Subtitle *subtitle)
@@ -38,7 +42,42 @@ void SubParserQt::updateFPS(Subtitle *subtitle)
 
 bool SubParserQt::needFPSUpdate()
 {
-    return iFps == 0.0 ? true : false;
+    return iFps == 0.0 && iNeedFPSUpdate ? true : false;
+}
+
+void SubParserQt::initializeParser()
+{
+    iType = SUB_TYPE_UNSET;
+    iNeedFPSUpdate = true;
+}
+
+subType SubParserQt::checkSubtitleType(QString &firstLine)
+{
+    QChar c;
+
+    if (firstLine.isEmpty())
+        return SUB_TYPE_UNSET;
+
+    c = firstLine.at(0);
+
+    switch (c.toLatin1()) {
+    case '{':
+        qDebug() << "MicroDVD subtitle";
+        return SUB_TYPE_MICRODVD;
+    case '[':
+        qDebug() << "SubViewer 2.0 subtitle";
+        iNeedFPSUpdate = false;
+        return SUB_TYPE_SUBVIEWER;
+    default:
+        if (c.isDigit()) {
+            qDebug() << "SubViewer 2.0 subtitle (assumed)";
+            iNeedFPSUpdate = false;
+            return SUB_TYPE_SUBVIEWER;
+        }
+
+        qDebug() << "unknown subtitle file";
+        return SUB_TYPE_UNSET;
+    }
 }
 
 QString SubParserQt::cleanupText(QString &text)
@@ -84,21 +123,15 @@ QString SubParserQt::cleanupText(QString &text)
     return text;
 }
 
-Subtitle *SubParserQt::parseSubtitle(enum SubParseError *err)
+Subtitle *SubParserQt::parseMicroDVD(QString &line, SubParseError *err)
 {
+    QRegularExpression regexMicroDVD(R"(\{(\d+(?:\.\d+)?)\}\{(\d+(?:\.\d+)?)\}(.*))");
     QString text;
     QStringList parts;
     int startTime;
     int endTime;
 
-    if (iInStream->atEnd()) {
-        iSubtitleIndex = 0;
-        return nullptr;
-    }
-
-    QString line = iInStream->readLine().trimmed();
-    QRegularExpression rx(R"(\{(\d+(?:\.\d+)?)\}\{(\d+(?:\.\d+)?)\}(.*))");
-    QRegularExpressionMatch match = rx.match(line);
+    QRegularExpressionMatch match = regexMicroDVD.match(line);
 
     if (!match.hasMatch()) {
         qDebug() << "failed to process line" << line;
@@ -123,8 +156,10 @@ Subtitle *SubParserQt::parseSubtitle(enum SubParseError *err)
     if (startFrame == 1 && endFrame == 1) {
         qDebug() << "Override previously set FPS" << iFps;
         iFps = text.toDouble();
+        iNeedFPSUpdate = false;
+
         qDebug() << "Read FPS from file" << iFps;
-        text = QString("");
+        return nullptr;
     }
 
     // Last one, reset the index counter
@@ -137,6 +172,80 @@ Subtitle *SubParserQt::parseSubtitle(enum SubParseError *err)
     endTime = frameToTimestampMs(endFrame);
 
     return newSubtitle(++iSubtitleIndex, startTime, endTime, startFrame, endFrame, text);
+}
+
+Subtitle *SubParserQt::parseSubtitleViewer(QString &line,SubParseError *err)
+{
+    QStringList parts;
+    QString textLine;
+    QString text;
+    QTime startTime;
+    QTime endTime;
+
+    /* Ignore all lines starting with tags */
+    if (line.at(0).toLatin1() == '[') {
+        qDebug() << "ignoring tag" << line;
+        *err = SUB_PARSE_ERROR_NONE;
+        return nullptr;
+    }
+
+    parts = line.split(",");
+    if (parts.size() != 2) {
+        qDebug() << "invalid timestamp" << line;
+        *err = SUB_PARSE_ERROR_INVALID_TIMESTAMP;
+        return nullptr;
+    }
+
+    startTime = timeStrToQTime(parts[0]);
+    endTime = timeStrToQTime(parts[1]);
+
+    while (!iInStream->atEnd()) {
+        textLine = iInStream->readLine().trimmed();
+
+        if (textLine.isEmpty())
+            break;
+
+        if (!text.isEmpty())
+            text.append(QStringLiteral("<br>").toUtf8());
+
+        text.append(textLine.replace("[br]", QStringLiteral("<br>")));
+    }
+
+    return newSubtitle(++iSubtitleIndex, startTime, endTime, text);
+}
+
+Subtitle *SubParserQt::parseSubtitle(enum SubParseError *err)
+{
+    *err = SUB_PARSE_ERROR_NONE;
+
+    if (iInStream->atEnd()) {
+        iSubtitleIndex = 0;
+        *err = SUB_PARSE_ERROR_EOF;
+        return nullptr;
+    }
+
+    QString line = iInStream->readLine().trimmed();
+    if (line.isEmpty() || line == QStringLiteral("\n")) {
+        qDebug() << "skip empty line";
+        return nullptr; // noerror
+    }
+
+    /* Should be done only once */
+    if (iType == SUB_TYPE_UNSET)
+        iType = checkSubtitleType(line);
+
+    switch (iType) {
+    case SUB_TYPE_UNSET:
+        qWarning() << "cannot detect .sub file type";
+        *err = SUB_PARSE_ERROR_INVALID_FILE;
+        break;
+    case SUB_TYPE_MICRODVD:
+        return parseMicroDVD(line, err);
+    case SUB_TYPE_SUBVIEWER:
+        return parseSubtitleViewer(line, err);
+    }
+
+    return nullptr;
 }
 
 ParserRegistrar<SubParserQt> SubParserQt::registrar("sub");

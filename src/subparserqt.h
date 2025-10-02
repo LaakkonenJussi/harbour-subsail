@@ -23,18 +23,31 @@
 #include "parser.h"
 #include "parserenginefactory.h"
 
+typedef enum _subType {
+    SUB_TYPE_UNSET = 0,
+    SUB_TYPE_MICRODVD,
+    SUB_TYPE_SUBVIEWER
+} subType;
+
 class SubParserQt : public Parser
 {
+
 public:
     SubParserQt();
     Subtitle *parseSubtitle(enum SubParseError *err);
     void updateFPS(Subtitle *subtitle);
     bool needFPSUpdate();
+    void initializeParser();
 
 private:
     int iSubtitleIndex;
+    subType iType;
+    bool iNeedFPSUpdate;
 
     QString cleanupText(QString &text);
+    subType checkSubtitleType(QString &firstLine);
+    Subtitle *parseMicroDVD(QString &line, enum SubParseError *err);
+    Subtitle *parseSubtitleViewer(QString &line, enum SubParseError *err);
 
     static ParserRegistrar<SubParserQt> registrar;
 };
