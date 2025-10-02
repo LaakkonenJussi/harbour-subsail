@@ -24,6 +24,7 @@
 
 SrtParserQt::SrtParserQt()
 {
+    iTimeStampPattern = QString("hh:mm:ss,zzz");
 }
 
 Subtitle* SrtParserQt::parseSubtitle(enum SubParseError *err)
