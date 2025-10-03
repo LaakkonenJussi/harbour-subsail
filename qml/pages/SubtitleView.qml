@@ -27,7 +27,8 @@ Page {
 
     property var lastUpdate
     property int applicationState: Qt.application.state
-    property double fps: 0.0 
+    property double fps: 0.0
+    property double oldFps: 0.0
 
     property bool hideSliderOnPlay: hideSliderSetting.value
     property bool autoResumePlayback: autoResumePlaybackSetting.value
@@ -239,6 +240,8 @@ Page {
             dialog.onAccepted.connect(function() {
                 clearSubtitles()
                 setupSubtitles()
+
+                oldFps = fps
                 fps = dialog.fps
 
                 if (autoResumePlayback && playstate)
@@ -348,6 +351,8 @@ Page {
             break
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_OK_NEED_FPS:
         case 1:
+            clearSubtitles()
+            oldTime = 0
             showFPSDialog()
             showFPSSelector = true
             break
@@ -401,20 +406,25 @@ Page {
     onFpsChanged: {
         SubtitleEngine.updateFps(fps)
         resetFPSTimer()
+        totalTime = SubtitleEngine.getTotalTime()
 
         if (oldTime > totalTime) {
             pageStack.completeAnimation()
-            errorNotify(qsTr("FPS change timer overflow"), qsTr("Time reset"))
             clearSubtitles()
         } else {
-            time = oldTime
-            updateTime(time / 1000)
-            totalTime = SubtitleEngine.getTotalTime()
+            if (oldFps > 0 && oldTime > 0) {
+                var newTime = Math.round(oldTime / oldFps * fps)
+                console.log("new time", newTime, "total time", totalTime)
+                if (newTime < totalTime) {
+                    time = newTime;
+                    updateSubtitle()
+                }
+            }
         }
     }
 
     onTimeChanged: {
-        slider.value = time / 1000
+        slider.value = time ? time / 1000 : 0
         subSailMain.currentTime = time
     }
 
