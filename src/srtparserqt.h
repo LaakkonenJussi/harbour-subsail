@@ -40,6 +40,7 @@ public:
     Subtitle *parseSubtitle(enum SubParseError *err);
     void updateFPS(Subtitle *subtitle);
     bool needFPSUpdate() { return false; };
+    void initializeParser() { return; };
 
 private:
     static ParserRegistrar<SrtParserQt> registrar;

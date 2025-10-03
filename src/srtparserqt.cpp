@@ -24,6 +24,7 @@
 
 SrtParserQt::SrtParserQt()
 {
+    iTimeStampPattern = QString("hh:mm:ss,zzz");
 }
 
 Subtitle* SrtParserQt::parseSubtitle(enum SubParseError *err)
@@ -37,8 +38,12 @@ Subtitle* SrtParserQt::parseSubtitle(enum SubParseError *err)
     int index = -1;
     enum srtReadState state = SRT_READ_INDEX;
 
-    if (iInStream->atEnd())
+    *err = SUB_PARSE_ERROR_NONE;
+
+    if (iInStream->atEnd()) {
+        *err = SUB_PARSE_ERROR_EOF;
         return nullptr;
+    }
 
     while (!iInStream->atEnd() && state < SRT_READ_STOP) {
         QString line = iInStream->readLine().trimmed();

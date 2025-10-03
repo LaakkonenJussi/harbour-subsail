@@ -50,6 +50,7 @@ static QString parseErrorToStr(enum SubParseError err)
 {
     switch (err) {
     case SUB_PARSE_ERROR_NONE:
+    case SUB_PARSE_ERROR_EOF:
         return QString("No error");
     case SUB_PARSE_ERROR_INVALID_INDEX:
         return QString("Invalid indexes");
@@ -80,6 +81,7 @@ SubtitleEngine::SubtitleLoadStatus SubtitleEngine::loadSubtitle(QString file)
         return SUBTITLE_LOAD_STATUS_NOT_SUPPORTED;
     }
 
+    iParser->initializeParser();
     iParser->setFallbackCodec(fallback_codec);
 
     int err = iParser->openSubtitle(file);
@@ -97,14 +99,17 @@ SubtitleEngine::SubtitleLoadStatus SubtitleEngine::loadSubtitle(QString file)
         break;
     }
 
-    while ((newsub = iParser->loadSubtitle(&parseErr)) &&
-            (parseErr == SUB_PARSE_ERROR_NONE))
-        subtitles.append(newsub);
+    do {
+        newsub = iParser->loadSubtitle(&parseErr);
+        if (newsub) /* Skip empty lines */
+            subtitles.append(newsub);
+    } while (parseErr == SUB_PARSE_ERROR_NONE);
 
     iParser->closeSubtitle();
 
     switch (parseErr) {
     case SUB_PARSE_ERROR_NONE:
+    case SUB_PARSE_ERROR_EOF:
         break;
     case SUB_PARSE_ERROR_INVALID_INDEX:
     case SUB_PARSE_ERROR_INVALID_TIMESTAMP:
