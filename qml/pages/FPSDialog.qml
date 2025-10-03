@@ -27,7 +27,7 @@ Dialog {
         return 0
     }
 
-    canAccept: selected === true
+    canAccept: selected === true && optionBox.value != ""
 
     Column {
         width: parent.width
@@ -38,7 +38,7 @@ Dialog {
             id: optionBox
             width: parent.width
             label: qsTr("Select subtitle FPS")
-            value: fps > 0 ? fps.toString() : "23.976"
+            value: fps > 0 ? fps.toString() : ""
             currentIndex: itemTextToIndex(fps.toString())
             onEntered: selected = true
 

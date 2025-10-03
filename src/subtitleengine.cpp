@@ -136,7 +136,6 @@ void SubtitleEngine::unloadSubtitle()
 
 void SubtitleEngine::updateFps(double fps)
 {
-    QListIterator<Subtitle*> iter(subtitles);
     Subtitle *subtitle;
 
     if (!iParser)
@@ -209,8 +208,6 @@ void SubtitleEngine::setTime(int time)
             --position;
     }
 
-    qDebug() << "seached position:" << position;
-
     current_time = time;
 
     for (; position < size ; position++) {
@@ -250,8 +247,6 @@ void SubtitleEngine::setTime(int time)
         current_index = tmp->index - 1; // Subtitles start from 1
     else
         qDebug() << "not found, tmp null";
-
-    qDebug() << "position" << current_index;
 
     return;
 }
