@@ -1,7 +1,7 @@
 Name:       harbour-subsail
 
 Summary:    SubSail subtitle viewer for .srt and .sub
-Version:    0.3
+Version:    0.4
 Release:    1
 License:    GPLv3
 URL:        https://github.com/LaakkonenJussi/harbour-subsail

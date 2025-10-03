@@ -71,7 +71,7 @@ Automatic resume of playback after returning to main view can be changed in sett
     <name>MainPage</name>
     <message>
         <location filename="../qml/MainPage.qml" line="10"/>
-        <source>SubSail Subtitle Viewer 0.3-1</source>
+        <source>SubSail Subtitle Viewer 0.4-1</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
