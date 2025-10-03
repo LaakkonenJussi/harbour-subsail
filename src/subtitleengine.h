@@ -61,6 +61,7 @@ private:
     void setupSubtitles();
     void resetEngine();
     Subtitle *getSubtitleNow();
+    int findPosition(int time, int min, int max);
 
     static SubtitleEngine* iEngine;
 
