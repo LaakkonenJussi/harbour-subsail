@@ -25,6 +25,9 @@
 #include "parser.h"
 #include "parserenginefactory.h"
 
+#define OFFSET 1
+#define RAW 0
+
 class SubtitleEngine : public QObject
 {
     Q_OBJECT
@@ -48,7 +51,7 @@ public:
     Q_INVOKABLE void increaseTime(unsigned int time);
     Q_INVOKABLE void setTime(unsigned int time);
     Q_INVOKABLE QString getSubtitle(unsigned int time_increase);
-    Q_INVOKABLE void setOffset(int offset);
+    Q_INVOKABLE bool setOffset(int offset);
     Q_INVOKABLE static SubtitleEngine* initEngine();
     Q_INVOKABLE unsigned int getTotalTime();
     Q_INVOKABLE int setFallbackCodec(const QString fallbackCodec);
@@ -62,6 +65,13 @@ private:
     void resetEngine();
     Subtitle *getSubtitleNow();
     int findPosition(unsigned int time, int min, int max);
+    void setEngineSubTime(unsigned int time);
+    unsigned int getSubtitleStart(Subtitle *subtitle);
+    unsigned int getSubtitleStart(int position);
+    unsigned int getSubtitleEnd(Subtitle *subtitle);
+    unsigned int getSubtitleEnd(int position);
+    unsigned int calcCurrentDuration();
+    unsigned int calcCurrentDelay();
 
     static SubtitleEngine* iEngine;
 
@@ -73,7 +83,10 @@ private:
     unsigned int iCurrentTime;
     unsigned int iTotalTime;
     int iTimeOffset;
+    unsigned int iTimeOffsetUnsigned;
+    bool iTimeOffsetAdd;
     unsigned int iPrevEndTime;
+    unsigned int iInitDelay;
     unsigned int iDelay;
     unsigned int iDuration;
     SubState iState;

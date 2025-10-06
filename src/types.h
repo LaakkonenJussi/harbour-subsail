@@ -35,6 +35,7 @@ typedef struct _Subtitle {
 
 enum SubState {
     SUB_STATE_INIT = 0,
+    SUB_STATE_INIT_DELAY,
     SUB_STATE_DELAY,
     SUB_STATE_DURATION,
     SUB_STATE_END
