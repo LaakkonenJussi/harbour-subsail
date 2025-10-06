@@ -45,9 +45,9 @@ public:
     Q_INVOKABLE SubtitleEngine::SubtitleLoadStatus loadSubtitle(QString str);
     Q_INVOKABLE void unloadSubtitle();
     Q_INVOKABLE void updateFps(double fps);
-    Q_INVOKABLE void increaseTime(int time);
-    Q_INVOKABLE void setTime(int time);
-    Q_INVOKABLE QString getSubtitle(int time_increase);
+    Q_INVOKABLE void increaseTime(unsigned int time);
+    Q_INVOKABLE void setTime(unsigned int time);
+    Q_INVOKABLE QString getSubtitle(unsigned int time_increase);
     Q_INVOKABLE void setOffset(int offset);
     Q_INVOKABLE static SubtitleEngine* initEngine();
     Q_INVOKABLE unsigned int getTotalTime();
@@ -61,23 +61,23 @@ private:
     void setupSubtitles();
     void resetEngine();
     Subtitle *getSubtitleNow();
-    int findPosition(int time, int min, int max);
+    int findPosition(unsigned int time, int min, int max);
 
     static SubtitleEngine* iEngine;
 
     Parser* iParser;
 
-    QList<Subtitle*> subtitles;
-    QString path;
-    QString fallback_codec;
-    unsigned int current_time;
-    unsigned int total_time;
-    int time_offset;
-    int prev_end_time;
-    int delay;
-    int duration;
-    SubState state;
-    int current_index;
+    QList<Subtitle*> iSubtitles;
+    QString iPath;
+    QString iFallbackCodec;
+    unsigned int iCurrentTime;
+    unsigned int iTotalTime;
+    int iTimeOffset;
+    unsigned int iPrevEndTime;
+    unsigned int iDelay;
+    unsigned int iDuration;
+    SubState iState;
+    int iCurrentIndex;
 };
 
 #endif // SUBTITLEENGINE_H

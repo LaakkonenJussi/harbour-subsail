@@ -25,11 +25,11 @@
 // TODO: make c++ class
 typedef struct _Subtitle {
     int index;
-    int start_time; // In milliseconds
-    int end_time;   // In milliseconds
-    int start_frame;
-    int end_frame;
-    QString QText;
+    unsigned int start_time; // In milliseconds
+    unsigned int end_time;   // In milliseconds
+    unsigned int start_frame;
+    unsigned int end_frame;
+    QString text;
     _Subtitle *next;
 } Subtitle;
 

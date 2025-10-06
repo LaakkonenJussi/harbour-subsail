@@ -29,23 +29,23 @@ void SubtitleEngine::setupSubtitles()
 {
     Subtitle *first = nullptr;
 
-    if (subtitles.empty())
+    if (iSubtitles.empty())
         return;
 
-    qDebug() << subtitles.size() << "subtitle lines processed";
+    qDebug() << iSubtitles.size() << "subtitle lines processed";
 
-    first = subtitles.first();
+    first = iSubtitles.first();
 
-    total_time = subtitles.last()->end_time;
-    qDebug() << "total duration" << total_time << "ms";
+    iTotalTime = iSubtitles.last()->end_time;
+    qDebug() << "total duration" << iTotalTime << "ms";
     qDebug() << "start" << first->index << "time" << first->start_time;
 
-    current_index = 0;
-    state = SUB_STATE_DELAY;
-    prev_end_time = 0;
-    first->start_time += time_offset;
-    first->end_time += time_offset;
-    delay = first->start_time;
+    iCurrentIndex = 0;
+    iState = SUB_STATE_DELAY;
+    iPrevEndTime = 0;
+    first->start_time += iTimeOffset;
+    first->end_time += iTimeOffset;
+    iDelay = first->start_time;
 }
 
 static QString parseErrorToStr(enum SubParseError err)
@@ -84,7 +84,7 @@ SubtitleEngine::SubtitleLoadStatus SubtitleEngine::loadSubtitle(QString file)
     }
 
     iParser->initializeParser();
-    iParser->setFallbackCodec(fallback_codec);
+    iParser->setFallbackCodec(iFallbackCodec);
 
     int err = iParser->openSubtitle(file);
     switch (err) {
@@ -104,7 +104,7 @@ SubtitleEngine::SubtitleLoadStatus SubtitleEngine::loadSubtitle(QString file)
     do {
         newsub = iParser->loadSubtitle(&parseErr);
         if (newsub) /* Skip empty lines */
-            subtitles.append(newsub);
+            iSubtitles.append(newsub);
     } while (parseErr == SUB_PARSE_ERROR_NONE);
 
     iParser->closeSubtitle();
@@ -144,37 +144,37 @@ void SubtitleEngine::updateFps(double fps)
     qDebug() << "updating FPS to" << fps;
     iParser->setFps(fps);
 
-    foreach (subtitle, subtitles)
+    foreach (subtitle, iSubtitles)
         iParser->updateFPS(subtitle);
 
     // Update time from the last one
-    total_time = subtitles.last()->end_time;
-    qDebug() << "total time updated to" << total_time;
+    iTotalTime = iSubtitles.last()->end_time;
+    qDebug() << "total time updated to" << iTotalTime;
 }
 
-void SubtitleEngine::increaseTime(int time)
+void SubtitleEngine::increaseTime(unsigned int time)
 {
-    current_time += time;
+    iCurrentTime += time;
 
-    switch(state) {
+    switch(iState) {
     case SUB_STATE_INIT:
         break;
     case SUB_STATE_DELAY:
-        delay -= time;
+        iDelay -= time;
         break;
     case SUB_STATE_DURATION:
-        duration -= time;
+        iDuration -= time;
         break;
     case SUB_STATE_END:
-        duration = 0;
-        delay = 0;
+        iDuration = 0;
+        iDelay = 0;
         break;
     default:
         break;
     }
 }
 
-int SubtitleEngine::findPosition(int time, int min, int max) {
+int SubtitleEngine::findPosition(unsigned int time, int min, int max) {
     Subtitle *tmp;
     double halfpoint = (max - min) / 2;
     int half = min + floor(halfpoint);
@@ -182,7 +182,7 @@ int SubtitleEngine::findPosition(int time, int min, int max) {
     if (min >= max)
         return half;
 
-    tmp = subtitles.at(half);
+    tmp = iSubtitles.at(half);
 
     if (tmp->start_time < time && tmp->end_time < time)
         return findPosition(time, half + 1, max);
@@ -192,14 +192,14 @@ int SubtitleEngine::findPosition(int time, int min, int max) {
         return findPosition(time, min, half - 1);
 }
 
-void SubtitleEngine::setTime(int time)
+void SubtitleEngine::setTime(unsigned int time)
 {
     Subtitle *tmp = nullptr;
     int position = 0;
     int size;
     int diff;
 
-    size = subtitles.size();
+    size = iSubtitles.size();
 
     if (time) {
         position = findPosition(time, 0, size - 1);
@@ -208,50 +208,50 @@ void SubtitleEngine::setTime(int time)
             --position;
     }
 
-    current_time = time;
+    iCurrentTime = time;
 
     for (; position < size ; position++) {
 
-        tmp = subtitles.at(position);
+        tmp = iSubtitles.at(position);
 
         // delay
         if (tmp->start_time >= time && tmp->end_time <= time) {
-            state = SUB_STATE_DELAY;
-            delay = tmp->start_time - time;
+            iState = SUB_STATE_DELAY;
+            iDelay = tmp->start_time - time;
             break;
         }
 
         // duration
         if (tmp->start_time <= time && tmp->end_time >= time) {
-            state = SUB_STATE_DURATION;
-            duration = tmp->end_time - time;
+            iState = SUB_STATE_DURATION;
+            iDuration = tmp->end_time - time;
             break;
         }
 
         if (tmp->start_time <= time && tmp->end_time > time &&
-                ((position + 1) < size && subtitles.at(position + 1)->start_time > time)) {
-            state = SUB_STATE_DURATION;
+                ((position + 1) < size && iSubtitles.at(position + 1)->start_time > time)) {
+            iState = SUB_STATE_DURATION;
             diff = time - tmp->start_time;
-            duration = tmp->end_time - tmp->start_time + diff;
+            iDuration = tmp->end_time - tmp->start_time + diff;
             break;
         }
 
         if (tmp->start_time >= time) {
-            state = SUB_STATE_DELAY;
-            delay = tmp->start_time - time;
+            iState = SUB_STATE_DELAY;
+            iDelay = tmp->start_time - time;
             break;
         }
     }
 
     if (tmp)
-        current_index = tmp->index - 1; // Subtitles start from 1
+        iCurrentIndex = tmp->index - 1; // Subtitles start from 1
     else
         qDebug() << "not found, tmp null";
 
     return;
 }
 
-QString SubtitleEngine::getSubtitle(int time)
+QString SubtitleEngine::getSubtitle(unsigned int time)
 {
     Subtitle *current;
 
@@ -265,14 +265,14 @@ QString SubtitleEngine::getSubtitle(int time)
     if (time)
         increaseTime(time);
 
-    switch(state) {
+    switch(iState) {
     case SUB_STATE_INIT:
         break;
     case SUB_STATE_DELAY:
-        if (delay <= 0) {
-            state = SUB_STATE_DURATION;
-            duration = current->end_time - current->start_time;
-            delay = 0;
+        if (iDelay <= 0) {
+            iState = SUB_STATE_DURATION;
+            iDuration = current->end_time - current->start_time;
+            iDelay = 0;
             return iParser->getSubtitleText(current);
         } else {
             return QString("");
@@ -280,28 +280,28 @@ QString SubtitleEngine::getSubtitle(int time)
 
         break;
     case SUB_STATE_DURATION:
-        if (duration <= 0) {
-            duration = 0;
-            prev_end_time = current->end_time;
+        if (iDuration <= 0) {
+            iDuration = 0;
+            iPrevEndTime = current->end_time;
 
-            if (current_index + 1 >= subtitles.size()) {
-                state = SUB_STATE_END;
+            if (iCurrentIndex + 1 >= iSubtitles.size()) {
+                iState = SUB_STATE_END;
                 return QString("<subtitles end>");
             }
 
-            current_index++;
+            iCurrentIndex++;
             current = getSubtitleNow();
             if (!current) {
-                state = SUB_STATE_END;
+                iState = SUB_STATE_END;
                 return QString("<subtitles end>");
             }
 
-            current->start_time += time_offset;
-            current->end_time += time_offset;
+            current->start_time += iTimeOffset;
+            current->end_time += iTimeOffset;
 
-            if (prev_end_time >= 0 && current->start_time >= prev_end_time) {
-                delay = current->start_time - prev_end_time;
-                state = SUB_STATE_DELAY;
+            if (iPrevEndTime >= 0 && current->start_time >= iPrevEndTime) {
+                iDelay = current->start_time - iPrevEndTime;
+                iState = SUB_STATE_DELAY;
             }
 
             return QString("");
@@ -309,8 +309,8 @@ QString SubtitleEngine::getSubtitle(int time)
 
         return iParser->getSubtitleText(current);
     case SUB_STATE_END:
-        duration = 0;
-        delay = 0;
+        iDuration = 0;
+        iDelay = 0;
     default:
         break;
     }
@@ -320,12 +320,12 @@ QString SubtitleEngine::getSubtitle(int time)
 
 void SubtitleEngine::setOffset(int offset)
 {
-    time_offset = offset;
+    iTimeOffset = offset;
 }
 
 unsigned int SubtitleEngine::getTotalTime()
 {
-    return total_time;
+    return iTotalTime;
 }
 
 int SubtitleEngine::setFallbackCodec(const QString fallbackCodec)
@@ -339,65 +339,65 @@ int SubtitleEngine::setFallbackCodec(const QString fallbackCodec)
         return -EINVAL;
     }
 
-    if (fallback_codec == fallbackCodec) {
+    if (iFallbackCodec == fallbackCodec) {
         qDebug() << "codec not changed";
         return -EALREADY;
     }
 
 
-    fallback_codec = QString(fallbackCodec);
-    qDebug() << "new codec set" << fallback_codec;
+    iFallbackCodec = QString(fallbackCodec);
+    qDebug() << "new codec set" << iFallbackCodec;
 
     return 0;
 }
 
 QString SubtitleEngine::getFallbackCodec()
 {
-    return fallback_codec;
+    return iFallbackCodec;
 }
 
 void SubtitleEngine::freeSubtitles()
 {
     Subtitle *subtitle;
 
-    if (subtitles.empty())
+    if (iSubtitles.empty())
         return;
 
     qDebug() << "free subtitle list";
 
     if (iParser) {
-        foreach (subtitle, subtitles)
+        foreach (subtitle, iSubtitles)
             iParser->freeSubtitle(subtitle);
     }
 
-    subtitles.clear();
+    iSubtitles.clear();
 
     resetEngine();
 }
 
 void SubtitleEngine::resetEngine()
 {
-    current_index = -1;
+    iCurrentIndex = -1;
     iParser = nullptr;
 
-    current_time = 0;
-    total_time = 0;
-    prev_end_time = 0;
-    delay = 0;
-    duration = 0;
-    state = SUB_STATE_INIT;
-    time_offset = 0;
+    iCurrentTime = 0;
+    iTotalTime = 0;
+    iPrevEndTime = 0;
+    iDelay = 0;
+    iDuration = 0;
+    iState = SUB_STATE_INIT;
+    iTimeOffset = 0;
 
-    if (fallback_codec.isEmpty())
-        fallback_codec = QString("Windows-1252");
+    if (iFallbackCodec.isEmpty())
+        iFallbackCodec = QString("Windows-1252");
 }
 
 Subtitle *SubtitleEngine::getSubtitleNow()
 {
-    if (current_index < 0 || current_index > subtitles.size() - 1)
+    if (iCurrentIndex < 0 || iCurrentIndex > iSubtitles.size() - 1)
         return nullptr;
 
-    return subtitles.at(current_index);
+    return iSubtitles.at(iCurrentIndex);
 }
 
 SubtitleEngine* SubtitleEngine::iEngine = nullptr;
