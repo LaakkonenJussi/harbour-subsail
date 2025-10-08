@@ -25,16 +25,17 @@
 // TODO: make c++ class
 typedef struct _Subtitle {
     int index;
-    int start_time; // In milliseconds
-    int end_time;   // In milliseconds
-    int start_frame;
-    int end_frame;
-    QString QText;
+    unsigned int start_time; // In milliseconds
+    unsigned int end_time;   // In milliseconds
+    unsigned int start_frame;
+    unsigned int end_frame;
+    QString text;
     _Subtitle *next;
 } Subtitle;
 
 enum SubState {
     SUB_STATE_INIT = 0,
+    SUB_STATE_INIT_DELAY,
     SUB_STATE_DELAY,
     SUB_STATE_DURATION,
     SUB_STATE_END

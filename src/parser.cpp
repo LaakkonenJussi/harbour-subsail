@@ -150,10 +150,10 @@ void Parser::closeSubtitle()
 
 QString Parser::getSubtitleText(Subtitle *subtitle)
 {
-    if (!subtitle || subtitle->QText.isEmpty())
+    if (!subtitle || subtitle->text.isEmpty())
         return QString("");
 
-    return subtitle->QText;
+    return subtitle->text;
 }
 
 Subtitle *Parser::newSubtitle(int index, int startTime, int endTime,
@@ -165,7 +165,7 @@ Subtitle *Parser::newSubtitle(int index, int startTime, int endTime,
     sub->start_time = startTime;
     sub->end_time = endTime;
 
-    sub->QText = text;
+    sub->text = text;
     sub->next = nullptr;
 
     return sub;

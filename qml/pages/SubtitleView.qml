@@ -143,6 +143,12 @@ Page {
         resetDelayoffsetTimer()
     }
 
+    function resetOffset()
+    {
+        timeOffset = 0
+        resetDelayoffsetTimer()
+    }
+
     function updateFontsize(sizeChange)
     {
         if (fontsize + sizeChange >= fontsizeMax)
@@ -166,7 +172,7 @@ Page {
 
     function resetDelayoffsetTimer()
     {
-        delayOffset.text = (timeOffset > 0 ? "+" : (useOffset ? "-" : "")) + timeOffset + " ms"
+        delayOffset.text = (timeOffset > 0 ? "+" : "") + timeOffset + " ms"
         delayOffset.opacity = 1
 
         if (delayOffsetTimer.running)
@@ -355,12 +361,14 @@ Page {
             oldTime = 0
             showFPSDialog()
             showFPSSelector = true
+            resetOffset()
             break
         case SubtitleEngine.SUBTITLE_LOAD_STATUS_OK:
         case 0:
             showFPSSelector = false
             clearSubtitles()
             setupSubtitles()
+            resetOffset()
             break
         default:
             console.log("subtitle load status out of bounds:", loadStatus)
@@ -406,6 +414,7 @@ Page {
     onFpsChanged: {
         SubtitleEngine.updateFps(fps)
         resetFPSTimer()
+        resetOffset()
         totalTime = SubtitleEngine.getTotalTime()
 
         if (oldTime > totalTime) {
@@ -557,7 +566,7 @@ Page {
                 lastUpdate = now
 
                 var nextSub = SubtitleEngine.getSubtitle(expired)
-                if (nextSub != prevSub) {
+                if (nextSub !== prevSub) {
                     prevSub = nextSub
                     subtitlesModel.clear()
                     subtitlesModel.append({ modelText: nextSub})
@@ -705,7 +714,7 @@ Page {
                     IconButton {
                         icon.source: "image://theme/icon-m-previous"
                         enabled: subSailMain.loaded
-                        onClicked: updateOffset(-timeOffsetInterval)
+                        onClicked: updateOffset(useOffset ? timeOffsetInterval : -timeOffsetInterval)
                     }
                     IconButton {
                         id: play
@@ -718,7 +727,7 @@ Page {
                     IconButton {
                         icon.source: "image://theme/icon-m-next"
                         enabled: subSailMain.loaded
-                        onClicked: updateOffset(timeOffsetInterval)
+                        onClicked: updateOffset(useOffset ? -timeOffsetInterval : timeOffsetInterval)
                     }
                     IconButton {
                         icon.source: "image://theme/icon-m-add"
