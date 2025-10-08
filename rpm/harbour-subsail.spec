@@ -1,7 +1,7 @@
 Name:       harbour-subsail
 
-Summary:    SubSail subtitle viewer for .srt and .sub
-Version:    0.4
+Summary:    SubSail subtitle viewer
+Version:    0.5
 Release:    1
 License:    GPLv3
 URL:        https://github.com/LaakkonenJussi/harbour-subsail
@@ -14,10 +14,11 @@ BuildRequires:  pkgconfig(Qt5Quick)
 BuildRequires:  desktop-file-utils
 
 %description
-Simple subtitle viewer for SailfishOS. Supports SRT and SUB files.
-FPS can be changed for the loaded SUB files only. Subtitle size is adjustable
-via main UI and offset/time change is supported. The default codec used when
-BOM detection fails can be changed in settings.
+Simple subtitle viewer for SailfishOS. Supports SubRip (.srt), MicroDVD (.sub)
+and SubViewer 1.0/2.0 (.sub) files. Time can be adjusted directly or via offset.
+FPS can be changed for the .sub files whn the file does not supply the FPS
+information. Subtitle size is adjustable up to 200pt. The default coded
+used when BOM detection fails on a subtitle file can be changed in the settings.
 
 %prep
 %setup -q -n %{name}-%{version}

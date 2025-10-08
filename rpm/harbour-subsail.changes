@@ -1,0 +1,25 @@
+* Wed Oct 08 2025 Jussi Laakkonen <jussi.laakkonen@jolla.com> - 0.5
+- engine: use unsigned ints with time
+- engine: fix and simplify offset use
+- engine: simplify time adjustment and correct logic flaws
+- engine: calculate delay correctly by adjusting previous end time
+- qml: show offset correctly and fix offset setting logic
+
+* Fri Oct 03 2025 Jussi Laakkonen <jussi.laakkonen@jolla.com> - 0.4
+- qml: Clear view when FPS changes
+- qml: Adjust playback to correct position after FPS change
+
+* Fri Oct 03 2025 Jussi Laakkonen <jussi.laakkonen@jolla.com> - 0.3
+- qml: Fix FPS use with .sub files
+- engine: change to use QList instead of single linked list
+- parser: subtitle parsing improvements (EOF, timestamps)
+- parser: support SubViewer files
+- engine: fix index use and optimize time setting
+
+* Thu Sep 25 2025 Jussi Laakkonen <jussi.laakkonen@jolla.com> - 0.2
+- engine: Fix overlapping start and endtime handling
+- qml: Update subtitleview only when changed
+- qml: Show parse error in UI
+
+* Thu Sep 18 2025 Jussi Laakkonen <jussi.laakkonen@jolla.com> - 0.1
+ - Initial version

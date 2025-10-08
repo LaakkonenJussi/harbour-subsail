@@ -7,7 +7,7 @@ ApplicationWindow {
     id: subSailMain
     property bool playing: false
     property bool loaded: false
-    readonly property string appVersion: qsTr("SubSail Subtitle Viewer 0.4-1")
+    readonly property string appVersion: qsTr("SubSail Subtitle Viewer 0.5-1")
     property int currentTime
     property int totalTime
     initialPage: Component { SubtitleView { } }
