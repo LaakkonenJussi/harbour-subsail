@@ -40,6 +40,11 @@ Subtitle* SrtParserQt::parseSubtitle(enum SubParseError *err)
 
     *err = SUB_PARSE_ERROR_NONE;
 
+    if (!iInStream) {
+        *err = SUB_PARSE_ERROR_INVALID_FILE;
+        return nullptr;
+    }
+
     if (iInStream->atEnd()) {
         *err = SUB_PARSE_ERROR_EOF;
         return nullptr;
