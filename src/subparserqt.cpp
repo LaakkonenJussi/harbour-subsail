@@ -128,8 +128,8 @@ Subtitle *SubParserQt::parseMicroDVD(QString &line, SubParseError *err)
     QRegularExpression regexMicroDVD(R"(\{(\d+(?:\.\d+)?)\}\{(\d+(?:\.\d+)?)\}(.*))");
     QString text;
     QStringList parts;
-    int startTime;
-    int endTime;
+    unsigned int startTime;
+    unsigned int endTime;
 
     QRegularExpressionMatch match = regexMicroDVD.match(line);
 
@@ -140,8 +140,8 @@ Subtitle *SubParserQt::parseMicroDVD(QString &line, SubParseError *err)
     }
 
     // Some .sub files can have non-standard frames as floats caused by conversion
-    int startFrame = static_cast<int>(match.captured(1).toFloat());
-    int endFrame = static_cast<int>(match.captured(2).toFloat());
+    unsigned int startFrame = static_cast<unsigned int>(match.captured(1).toFloat());
+    unsigned int endFrame = static_cast<unsigned int>(match.captured(2).toFloat());
     text = match.captured(3).trimmed();
 
     text = cleanupText(text);
@@ -217,6 +217,11 @@ Subtitle *SubParserQt::parseSubtitleViewer(QString &line,SubParseError *err)
 Subtitle *SubParserQt::parseSubtitle(enum SubParseError *err)
 {
     *err = SUB_PARSE_ERROR_NONE;
+
+    if (!iInStream) {
+        *err = SUB_PARSE_ERROR_INVALID_FILE;
+        return nullptr;
+    }
 
     if (iInStream->atEnd()) {
         iSubtitleIndex = 0;
