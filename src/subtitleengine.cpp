@@ -206,7 +206,7 @@ void SubtitleEngine::increaseTime(unsigned int time)
                 unsigned int nextStart = getSubtitleStart(getSubtitleNow());
                 if (nextStart > iCurrentTime) {
                     iState = SUB_STATE_DELAY;
-                    setEngineSubTime(nextStart - iCurrentTime);
+                    setEngineSubTime(calcCurrentDelay());
                 } else {
                     iState = SUB_STATE_DURATION;
                     setEngineSubTime(calcCurrentDuration());
@@ -229,32 +229,6 @@ void SubtitleEngine::increaseTime(unsigned int time)
     default:
         break;
     }
-}
-
-int SubtitleEngine::findPosition(unsigned int time, int min, int max) {
-    unsigned int start_time;
-    unsigned int end_time;
-    int mid;
-
-    if (min < 0)
-        min = 0;
-
-    if (max >= static_cast<int>(iSubtitles.size()))
-        max = static_cast<int>(iSubtitles.size()) - 1;
-
-    if (min >= max)
-        return min;
-
-    mid = min + (max - min) / 2;
-    start_time = getSubtitleStart(mid);
-    end_time = getSubtitleEnd(mid);
-
-    if (start_time < time && end_time < time)
-        return findPosition(time, mid + 1, max);
-    else if (start_time < time && end_time > time)
-        return mid;
-    else
-        return findPosition(time, min, mid - 1);
 }
 
 void SubtitleEngine::setEngineSubTime(unsigned int time)
@@ -362,10 +336,35 @@ unsigned int SubtitleEngine::calcCurrentDelay()
     return start - iPrevEndTime;
 }
 
+int SubtitleEngine::findPosition(unsigned int time, int min, int max) {
+    unsigned int start_time;
+    unsigned int end_time;
+    int mid;
+
+    if (min < 0)
+        min = 0;
+
+    if (max >= static_cast<int>(iSubtitles.size()))
+        max = static_cast<int>(iSubtitles.size()) - 1;
+
+    if (min >= max)
+        return min;
+
+    mid = min + (max - min) / 2;
+    start_time = getSubtitleStart(mid);
+    end_time = getSubtitleEnd(mid);
+
+    if (start_time < time && end_time < time)
+        return findPosition(time, mid + 1, max);
+    else if (start_time < time && end_time > time)
+        return mid;
+    else
+        return findPosition(time, min, mid - 1);
+}
+
 void SubtitleEngine::setTime(unsigned int time)
 {
     Subtitle *tmp = nullptr;
-    unsigned int diff;
     int position = 0;
     int size;
 
@@ -401,7 +400,7 @@ void SubtitleEngine::setTime(unsigned int time)
         // delay
         if (start_time > time) {
             iState = SUB_STATE_DELAY;
-            setEngineSubTime(getSubtitleStart(tmp) - time);
+            setEngineSubTime(start_time - time);
             iPrevEndTime = 0;
             break;
         }
@@ -409,19 +408,18 @@ void SubtitleEngine::setTime(unsigned int time)
         // duration
         if (start_time <= time && end_time >= time) {
             iState = SUB_STATE_DURATION;
-            setEngineSubTime(getSubtitleEnd(tmp) - time);
-            iPrevEndTime = getSubtitleEnd(tmp);
+            setEngineSubTime(end_time - time);
+            iPrevEndTime = end_time;
             break;
         }
 
-        if (start_time <= time && end_time > time &&
+        /*if (start_time <= time && end_time > time &&
                 ((position + 1) < size && getSubtitleStart(position + 1) > time)) {
             iState = SUB_STATE_DURATION;
-            diff = time - start_time;
-            setEngineSubTime(getSubtitleEnd(tmp) - getSubtitleStart(tmp) + diff);
-            iPrevEndTime = getSubtitleEnd(tmp);
+            setEngineSubTime(end_time - (time - start_time));
+            iPrevEndTime = end_time;
             break;
-        }
+        }*/
     }
 
     if (tmp)
