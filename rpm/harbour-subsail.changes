@@ -1,3 +1,12 @@
+* Tue Oct 21 2025 Jussi Laakkonen <jussi.laakkonen@jolla.com> - 0.6
+- qml: Improve setting of time via UI
+- engine: Calculate duration correctly
+- engine: Improve position finding, handle int underflows
+- subparser: Use unsigned ints for frames, fix potential crash
+- srtparser: Check that iInStream exists to avoid crash
+- parser: Add timestamp, file mime type and other defensive guards
+- parser: Support plaintext, x-subrip, x-subvierer and octet-s subs
+
 * Wed Oct 08 2025 Jussi Laakkonen <jussi.laakkonen@jolla.com> - 0.5
 - engine: use unsigned ints with time
 - engine: fix and simplify offset use
