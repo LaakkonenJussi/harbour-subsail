@@ -34,14 +34,14 @@ public:
     void closeSubtitle();
     QString getSubtitleText(Subtitle *subtitle);
     Subtitle *newSubtitle(int index,
-                          int startTime,
-                          int endTime,
+                          unsigned int startTime,
+                          unsigned int endTime,
                           const QString &text);
     Subtitle *newSubtitle(int index,
-                          int startTime,
-                          int endTime,
-                          int startFrame,
-                          int endFrame,
+                          unsigned int startTime,
+                          unsigned int endTime,
+                          unsigned int startFrame,
+                          unsigned int endFrame,
                           const QString &text);
     Subtitle *newSubtitle(int index,
                           const QTime &startTime,
@@ -63,15 +63,18 @@ protected:
     QTextCodec *detectEncoding(QFile* file);
     bool checkFileMIME(const QString &filepath);
     QTime timeStrToQTime(const QString &str);
-    int timestampToMs(const char *timestamp);
-    int timestampToMs(QTime &time);
-    int frameToTimestampMs(const int frame);
+    unsigned int frameToTimestampMs(const unsigned int frame);
 
     QFile* iSubfile;
     QTextStream* iInStream;
     double iFps;
     QString iFallbackCodec;
     QString iTimeStampPattern;
+
+private:
+    unsigned int timestampToMs(const char *timestamp);
+    unsigned int timestampToMs(QTime &time);
+    QTextCodec *useFallbackCodec();
 };
 
 #endif // PARSER_H
