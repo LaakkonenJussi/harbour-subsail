@@ -25,9 +25,6 @@
 #include "parser.h"
 #include "parserenginefactory.h"
 
-#define OFFSET 1
-#define RAW 0
-
 class SubtitleEngine : public QObject
 {
     Q_OBJECT
