@@ -45,10 +45,20 @@ Parser::~Parser()
     }
 
 }
+QTextCodec *Parser::useFallbackCodec()
+{
+    qDebug() << "using fallback codec" << iFallbackCodec;
+    return QTextCodec::codecForName(iFallbackCodec.toStdString().c_str());
+}
 
 QTextCodec* Parser::detectEncoding(QFile* file)
 {
-    QByteArray bom = file->peek(4);  // read first up to 4 bytes = BOM
+    QByteArray bom;
+
+    if (!file)
+        return useFallbackCodec();
+
+    bom = file->peek(4);  // read first up to 4 bytes = BOM
 
     if (bom.startsWith("\xEF\xBB\xBF")) {
         qDebug() << "using UTF-8 codec";
@@ -62,9 +72,7 @@ QTextCodec* Parser::detectEncoding(QFile* file)
     }
 
     // No BOM → fallback
-    qDebug() << "using fallback codec" << iFallbackCodec;
-
-    return QTextCodec::codecForName(iFallbackCodec.toStdString().c_str());
+    return useFallbackCodec();
 }
 
 bool Parser::checkFileMIME(const QString &filepath)
@@ -72,11 +80,21 @@ bool Parser::checkFileMIME(const QString &filepath)
     QMimeDatabase db;
     QMimeType mime = db.mimeTypeForFile(filepath, QMimeDatabase::MatchContent);
     QStringList list = mime.parentMimeTypes();
+    bool plaintext = false;
 
-    for (int i = 0; i < list.size(); i++)
+    for (int i = 0; i < list.size(); i++) {
         qDebug() << "mimetype:" << list.at(i);
+        QString mimeTypeName = QString(list.at(i));
 
-    return true;
+        if (mimeTypeName == "text/plain" ||
+                mimeTypeName == QStringLiteral("application/x-subrip") ||
+                mimeTypeName == QStringLiteral("application/x-subviewer") ||
+                // Some .sub files with converters are detected as octet-stream
+                mimeTypeName == QStringLiteral("application/octet-stream"))
+            plaintext = true;
+    }
+
+    return plaintext;
 }
 
 QTime Parser::timeStrToQTime(const QString &str)
@@ -84,23 +102,35 @@ QTime Parser::timeStrToQTime(const QString &str)
     return QTime::fromString(str, iTimeStampPattern);
 }
 
-int Parser::timestampToMs(const char *timestamp)
+unsigned int Parser::timestampToMs(const char *timestamp)
 {
     int h, m, s, ms;
 
-    sscanf(timestamp, "%d:%d:%d,%d", &h, &m, &s, &ms);
+    if (sscanf(timestamp, "%d:%d:%d,%d", &h, &m, &s, &ms) != 4) {
+        qDebug() << "invalid timestamp format:" << timestamp;
+        return 0;
+    }
 
-    return (h * 3600 + m * 60 + s) * 1000 + ms;
+    // Allow normal ranges for ms, s, m, limit hours to 100 - could be lower, though.
+    if (ms > 999 || ms < 0 || s > 59 || s < 0 || m > 59 || m < 0 || h < 0 || h > 100) {
+        qDebug() << "invalid timestamp values:" << timestamp;
+        return 0;
+    }
+
+    return static_cast<unsigned int>((h * 3600 + m * 60 + s) * 1000 + ms);
 }
 
-int Parser::timestampToMs(QTime &time)
+unsigned int Parser::timestampToMs(QTime &time)
 {
     return timestampToMs(time.toString("hh:mm:ss,zzz").toStdString().c_str());
 }
 
-int Parser::frameToTimestampMs(const int frame)
+unsigned int Parser::frameToTimestampMs(const unsigned int frame)
 {
-    return static_cast<int>((frame / iFps) * 1000.0);
+    if (iFps <= 0.0)
+        return 0;
+
+    return static_cast<unsigned int>((frame / iFps) * 1000.0);
 }
 
 int Parser::openSubtitle(const QString &filePath)
@@ -136,6 +166,12 @@ Subtitle *Parser::loadSubtitle(enum SubParseError *err)
 {
     Subtitle *newsub = nullptr;
 
+    if (!iSubfile) {
+        qDebug() << "subtitle file not set";
+        *err = SUB_PARSE_ERROR_NO_FILE;
+        return nullptr;
+    }
+
     if (iSubfile->isOpen() && iSubfile->isReadable())
         newsub = parseSubtitle(err);
 
@@ -144,7 +180,7 @@ Subtitle *Parser::loadSubtitle(enum SubParseError *err)
 
 void Parser::closeSubtitle()
 {
-    if (iSubfile->isOpen())
+    if (iSubfile && iSubfile->isOpen())
         iSubfile->close();
 }
 
@@ -156,24 +192,23 @@ QString Parser::getSubtitleText(Subtitle *subtitle)
     return subtitle->text;
 }
 
-Subtitle *Parser::newSubtitle(int index, int startTime, int endTime,
-                                   const QString &text)
+Subtitle *Parser::newSubtitle(int index, unsigned int startTime,
+                              unsigned int endTime,
+                              const QString &text)
 {
     Subtitle *sub = new Subtitle();
 
     sub->index = index;
     sub->start_time = startTime;
     sub->end_time = endTime;
-
     sub->text = text;
-    sub->next = nullptr;
 
     return sub;
 }
 
-Subtitle *Parser::newSubtitle(int index, int startTime, int endTime,
-                                    int startFrame, int endFrame,
-                                    const QString &text)
+Subtitle *Parser::newSubtitle(int index, unsigned int startTime,
+                              unsigned int endTime, unsigned int startFrame,
+                              unsigned int endFrame,  const QString &text)
 {
     Subtitle *sub = newSubtitle(index, startTime, endTime, text);
 
@@ -186,8 +221,8 @@ Subtitle *Parser::newSubtitle(int index, int startTime, int endTime,
 Subtitle* Parser::newSubtitle(int index, const QTime &startTime,
                                    const QTime &endTime, const QString &text)
 {
-    int start_time = timestampToMs(const_cast<QTime&>(startTime));
-    int end_time = timestampToMs(const_cast<QTime&>(endTime));
+    unsigned int start_time = timestampToMs(const_cast<QTime&>(startTime));
+    unsigned int end_time = timestampToMs(const_cast<QTime&>(endTime));
 
     return newSubtitle(index, start_time, end_time, text);
 }

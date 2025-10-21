@@ -67,6 +67,8 @@ static QString parseErrorToStr(enum SubParseError err)
         return QString("Invalid timestamps");
     case SUB_PARSE_ERROR_INVALID_FILE:
         return QString("Invalid file");
+    case SUB_PARSE_ERROR_NO_FILE:
+        return QString("No file");
     }
 
     return QString("");
@@ -123,6 +125,7 @@ SubtitleEngine::SubtitleLoadStatus SubtitleEngine::loadSubtitle(QString file)
     case SUB_PARSE_ERROR_INVALID_INDEX:
     case SUB_PARSE_ERROR_INVALID_TIMESTAMP:
     case SUB_PARSE_ERROR_INVALID_FILE:
+    case SUB_PARSE_ERROR_NO_FILE:
         qWarning() << "cannot parse subtitle file" << parseErrorToStr(parseErr);
         return SUBTITLE_LOAD_STATUS_PARSE_FAILURE;
     }
@@ -231,12 +234,18 @@ void SubtitleEngine::increaseTime(unsigned int time)
 int SubtitleEngine::findPosition(unsigned int time, int min, int max) {
     unsigned int start_time;
     unsigned int end_time;
-    double halfpoint = floor((max - min) / 2);
-    int mid = min + halfpoint;
+    int mid;
+
+    if (min < 0)
+        min = 0;
+
+    if (max >= static_cast<int>(iSubtitles.size()))
+        max = static_cast<int>(iSubtitles.size()) - 1;
 
     if (min >= max)
-        return mid;
+        return min;
 
+    mid = min + (max - min) / 2;
     start_time = getSubtitleStart(mid);
     end_time = getSubtitleEnd(mid);
 
@@ -272,6 +281,10 @@ static unsigned int getUnsigned(int value, bool *add)
 {
     if (value < 0) {
         *add = false;
+
+        if (value == INT_MIN)
+            return static_cast<unsigned int>(static_cast<unsigned int>(INT_MAX) + 1u);
+
         return static_cast<unsigned int>(-value);
     } else {
         *add = true;
@@ -284,10 +297,15 @@ unsigned int SubtitleEngine::getSubtitleStart(Subtitle *subtitle)
     if (!subtitle)
         return 0;
 
-    if (iTimeOffsetAdd)
+    if (iTimeOffsetAdd) {
         return subtitle->start_time + iTimeOffsetUnsigned;
-    else
+    } else {
+        // In case the subtraction would undeflow.
+        if (subtitle->start_time <= iTimeOffsetUnsigned)
+            return 0;
+
         return subtitle->start_time - iTimeOffsetUnsigned;
+    }
 }
 
 unsigned int SubtitleEngine::getSubtitleStart(int position)
@@ -303,10 +321,15 @@ unsigned int SubtitleEngine::getSubtitleEnd(Subtitle *subtitle)
     if (!subtitle)
         return 0;
 
-    if (iTimeOffsetAdd)
+    if (iTimeOffsetAdd) {
         return subtitle->end_time + iTimeOffsetUnsigned;
-    else
+    } else {
+        // In case the subtraction would undeflow.
+        if (subtitle->end_time <= iTimeOffsetUnsigned)
+            return 0;
+
         return subtitle->end_time - iTimeOffsetUnsigned;
+    }
 }
 
 unsigned int SubtitleEngine::getSubtitleEnd(int position)
@@ -342,9 +365,9 @@ unsigned int SubtitleEngine::calcCurrentDelay()
 void SubtitleEngine::setTime(unsigned int time)
 {
     Subtitle *tmp = nullptr;
+    unsigned int diff;
     int position = 0;
     int size;
-    int diff;
 
     if (iSubtitles.isEmpty())
         return;

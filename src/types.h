@@ -30,7 +30,6 @@ typedef struct _Subtitle {
     unsigned int start_frame;
     unsigned int end_frame;
     QString text;
-    _Subtitle *next;
 } Subtitle;
 
 enum SubState {
@@ -47,6 +46,7 @@ enum SubParseError {
     SUB_PARSE_ERROR_INVALID_INDEX,
     SUB_PARSE_ERROR_INVALID_TIMESTAMP,
     SUB_PARSE_ERROR_INVALID_FILE,
+    SUB_PARSE_ERROR_NO_FILE
 };
 
 #endif // TYPES_H
