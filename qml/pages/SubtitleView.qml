@@ -78,6 +78,8 @@ Page {
 
             if (!oldUseOffset && useOffset) {
                 timeOffset = 0
+                SubtitleEngine.setOffset(timeOffset)
+                updateSubtitle()
                 resetDelayoffsetTimer()
             }
         }
@@ -133,19 +135,31 @@ Page {
     {
         if (useOffset) {
             timeOffset += offsetChange
+            SubtitleEngine.setOffset(timeOffset)
         } else {
-            time += offsetChange
-            updateSubtitle()
+            var updatedTime
+
+            if (time + offsetChange < 0)
+                updatedTime = 0
+            else if (time + offsetChange > totalTime)
+                updatedTime = totalTime
+            else
+                updatedTime = time + offsetChange
+
+            time = updatedTime
             // for visuals
             timeOffset = offsetChange
         }
 
+        updateSubtitle()
         resetDelayoffsetTimer()
     }
 
     function resetOffset()
     {
         timeOffset = 0
+        SubtitleEngine.setOffset(timeOffset)
+        updateSubtitle()
         resetDelayoffsetTimer()
     }
 
@@ -439,12 +453,6 @@ Page {
 
     onTotalTimeChanged: {
         subSailMain.totalTime = totalTime
-    }
-
-    onTimeOffsetChanged: {
-        SubtitleEngine.setOffset(timeOffset)
-        if (useOffset)
-            updateSubtitle()
     }
 
     onSubtitleFilePathChanged: {
